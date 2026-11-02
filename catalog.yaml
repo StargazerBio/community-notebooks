@@ -1,1 +1,6 @@
-notebooks: []
+# Featured notebooks, each at the commit its maintainers reviewed.
+notebooks:
+  - path: scrna/clustering-pipeline
+    commit: ed25a84823e1caa63846738c072d447d5bc78a87
+  - path: germline/short-variant-discovery
+    commit: ed25a84823e1caa63846738c072d447d5bc78a87
