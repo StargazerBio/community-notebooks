@@ -38,7 +38,7 @@ with app.setup:
     from stargazer.assets.reference import Reference
     from stargazer.workflows import germline_short_variant_discovery
 
-    main_name = "Germline short variants"
+    main_name = "Germline variants"
     main_description = "GATK best practices from paired reads to a cohort VCF."
 
     DEMO_BUNDLE = "variant_calling_demo"
