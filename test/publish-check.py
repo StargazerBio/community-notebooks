@@ -32,7 +32,7 @@ with app.setup:
 
     main_name = "publish-check"
 
-    main_description = ""
+    main_description = "Republished version."
     main_env = notebook_env.clone_with(
         name="notebook", resources=flyte.Resources(cpu=2, memory="4Gi")
     )
