@@ -2,7 +2,8 @@
 
 Each notebook is `<domain>/<slug>.py`. Its setup block declares its dashboard
 tile as plain strings (`main_name`, `main_description`), and the
-`[tool.stargazer]` table in its script header names its `owners`. Every
+`[tool.stargazer]` table in its script header names its `owners`. Its
+`main_name` is short enough for a dashboard to open it. Every
 catalog entry names an existing notebook at a full commit. Prints one line per problem and exits 1 if there are any.
 """
 
@@ -15,6 +16,10 @@ from pathlib import Path
 import yaml
 
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# A dashboard names a notebook's app `nb-<slug>-<mode>` after its `main_name`,
+# slugged, and Flyte refuses an app name over 30 characters, so a dashboard
+# refuses a slug over this (the infra repo's `NOTEBOOK_SLUG_MAX`).
+NAME_SLUG_MAX = 30 - len("nb--edit")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 # PEP 723's reference regex for an inline script metadata block.
 SCRIPT_BLOCK = re.compile(
@@ -61,6 +66,11 @@ def setup_strings(notebook: Path) -> dict[str, str]:
     return found
 
 
+def name_slug(name: str) -> str:
+    """`name` as a dashboard slugs it: lowercase `[a-z0-9-]`, dashes collapsed."""
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9-]", "-", name.lower())).strip("-")
+
+
 def notebook_problems(notebook: Path) -> list[str]:
     """What's wrong with one `<domain>/<slug>.py` notebook."""
     problems = []
@@ -77,6 +87,11 @@ def notebook_problems(notebook: Path) -> list[str]:
     for name in ("main_name", "main_description"):
         if not strings.get(name):
             problems.append(f"{notebook}: setup block declares no {name}")
+    if len(name_slug(strings.get("main_name", ""))) > NAME_SLUG_MAX:
+        problems.append(
+            f"{notebook}: main_name {strings['main_name']!r} is too long for a "
+            f"dashboard to open; keep it to {NAME_SLUG_MAX} characters"
+        )
     return problems
 
 
