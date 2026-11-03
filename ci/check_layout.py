@@ -1,21 +1,44 @@
-"""Check the repo's layout: every notebook folder and the catalog are well formed.
+"""Check the repo's layout: every notebook and the catalog are well formed.
 
-Each `<domain>/<slug>/` holds `notebook.py` and `meta.yaml`. The notebook's
-setup block declares its dashboard tile as plain strings (`main_name`,
-`main_description`), and `meta.yaml` names its `owners` and the `demo_bundle`
-CI runs it on. Every catalog entry names an existing folder at a full commit.
-Prints one line per problem and exits 1 if there are any.
+Each notebook is `<domain>/<slug>.py`. Its setup block declares its dashboard
+tile as plain strings (`main_name`, `main_description`), and the
+`[tool.stargazer]` table in its script header names its `owners` and the
+`demo_bundle` CI runs it on. Every catalog entry names an existing notebook at
+a full commit. Prints one line per problem and exits 1 if there are any.
 """
 
 import ast
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 import yaml
 
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
+# PEP 723's reference regex for an inline script metadata block.
+SCRIPT_BLOCK = re.compile(
+    r"(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$"
+)
+
+
+def notebooks() -> list[Path]:
+    """Every notebook in the repo: a `.py` one level down, outside `ci/`."""
+    return sorted(p for p in Path().glob("*/*.py") if p.parts[0] != "ci")
+
+
+def stargazer_table(notebook: Path) -> dict:
+    """The `[tool.stargazer]` table in the notebook's script header, or {}."""
+    for match in SCRIPT_BLOCK.finditer(notebook.read_text()):
+        if match["type"] != "script":
+            continue
+        toml = "".join(
+            line[2:] if line.startswith("# ") else line[1:]
+            for line in match["content"].splitlines(keepends=True)
+        )
+        return tomllib.loads(toml).get("tool", {}).get("stargazer", {})
+    return {}
 
 
 def setup_strings(notebook: Path) -> dict[str, str]:
@@ -39,20 +62,20 @@ def setup_strings(notebook: Path) -> dict[str, str]:
     return found
 
 
-def folder_problems(folder: Path) -> list[str]:
-    """What's wrong with one `<domain>/<slug>/` folder."""
+def notebook_problems(notebook: Path) -> list[str]:
+    """What's wrong with one `<domain>/<slug>.py` notebook."""
     problems = []
-    for part in folder.parts:
+    for part in (notebook.parent.name, notebook.stem):
         if not SLUG.match(part):
-            problems.append(f"{folder}: {part!r} isn't lowercase kebab-case")
-    notebook, meta_path = folder / "notebook.py", folder / "meta.yaml"
-    if not meta_path.exists():
-        return [*problems, f"{folder}: no meta.yaml"]
-    meta = yaml.safe_load(meta_path.read_text()) or {}
+            problems.append(f"{notebook}: {part!r} isn't lowercase kebab-case")
+    try:
+        meta = stargazer_table(notebook)
+    except tomllib.TOMLDecodeError as e:
+        return [*problems, f"{notebook}: script header isn't valid TOML: {e}"]
     if not meta.get("owners"):
-        problems.append(f"{meta_path}: no owners")
+        problems.append(f"{notebook}: [tool.stargazer] names no owners")
     if not meta.get("demo_bundle"):
-        problems.append(f"{meta_path}: no demo_bundle")
+        problems.append(f"{notebook}: [tool.stargazer] names no demo_bundle")
     strings = setup_strings(notebook)
     for name in ("main_name", "main_description"):
         if not strings.get(name):
@@ -66,21 +89,20 @@ def catalog_problems(catalog: Path) -> list[str]:
     problems = []
     for entry in entries:
         path, commit = entry.get("path", ""), entry.get("commit", "")
-        if not (Path(path) / "notebook.py").exists():
-            problems.append(f"{catalog}: {path!r} isn't a notebook folder")
+        if Path(path) not in notebooks():
+            problems.append(f"{catalog}: {path!r} isn't a notebook")
         if not COMMIT.match(commit):
             problems.append(f"{catalog}: {path!r} needs a full commit SHA")
     return problems
 
 
 def main() -> int:
-    """Check every folder and the catalog; print the problems, return the exit code."""
+    """Check every notebook and the catalog; print the problems, return the exit code."""
     problems = []
-    for notebook in sorted(Path().glob("*/*/notebook.py")):
-        problems += folder_problems(notebook.parent)
-    for stray in sorted(Path().glob("*/*/*.py")):
-        if stray.name != "notebook.py" and not stray.is_relative_to("ci"):
-            problems.append(f"{stray}: a folder's notebook is named notebook.py")
+    for notebook in notebooks():
+        problems += notebook_problems(notebook)
+    for stray in sorted(Path().glob("*/*/**/*.py")):
+        problems.append(f"{stray}: a notebook is a file, <domain>/<slug>.py")
     problems += catalog_problems(Path("catalog.yaml"))
     for problem in problems:
         print(problem)

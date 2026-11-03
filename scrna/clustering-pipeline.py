@@ -8,6 +8,13 @@
 #
 # [tool.uv.sources]
 # stargazer-bio = { path = "/stargazer", editable = true }
+#
+# [tool.stargazer]
+# # Who may republish or unpublish this notebook from the dashboard, as Union
+# # user names; "maintainers" is the repo's maintainers.
+# owners = ["maintainers"]
+# # The bundle CI fetches into an empty asset store before running every cell.
+# demo_bundle = "scrna_demo"
 # ///
 """
 ### Stargazer scRNA-seq.

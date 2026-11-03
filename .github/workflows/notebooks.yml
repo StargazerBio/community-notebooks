@@ -28,12 +28,12 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     outputs:
-      folders: ${{ steps.folders.outputs.folders }}
+      notebooks: ${{ steps.notebooks.outputs.notebooks }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - id: folders
+      - id: notebooks
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
@@ -41,25 +41,25 @@ jobs:
 
   run:
     needs: [layout, plan]
-    if: needs.plan.outputs.folders != '[]'
+    if: needs.plan.outputs.notebooks != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        folder: ${{ fromJSON(needs.plan.outputs.folders) }}
-    name: run (${{ matrix.folder }})
+        notebook: ${{ fromJSON(needs.plan.outputs.notebooks) }}
+    name: run (${{ matrix.notebook }})
     steps:
       - uses: actions/checkout@v5
       # The image runs as uid 1000; the runner's checkout belongs to another.
       - run: mkdir -m 777 out
       - env:
           IMAGE: ghcr.io/stargazerbio/stargazer:${{ inputs.image || 'latest' }}
-          FOLDER: ${{ matrix.folder }}
+          NOTEBOOK: ${{ matrix.notebook }}
         run: |
           docker run --rm --platform linux/amd64 \
             -v "$PWD":/repo:ro -v "$PWD/out":/out \
             --entrypoint /repo/ci/run_notebook.sh \
-            "$IMAGE" "/repo/$FOLDER" /out
+            "$IMAGE" "/repo/$NOTEBOOK" /out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
