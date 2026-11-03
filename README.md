@@ -25,35 +25,20 @@ and open `short-variant-discovery.py` from marimo's file explorer. Each notebook
 One file per notebook, by topic: `<domain>/<slug>.py`, both lowercase kebab-case. Everything about a notebook is in the notebook:
 
 - Its setup block declares the dashboard tile as plain strings, `main_name` and `main_description`, and it imports only public `stargazer` APIs.
-- Its script header, beside the dependencies, has a `[tool.stargazer]` table naming the bundle that is its demo input (`demo_bundle`) and who may update it (`owners`):
+- Its script header, beside the dependencies, has a `[tool.stargazer]` table naming who may update it (`owners`, Union subjects, or `maintainers` for the org's admins):
 
   ```python
   # [tool.stargazer]
   # owners = ["maintainers"]
-  # demo_bundle = "variant_calling_demo"
   ```
-
-- Work a notebook holds behind a button runs anyway when the notebook is started with `--run` (`"run" in mo.cli_args()`), which is how CI starts it.
 
 `catalog.yaml` lists the featured notebooks, each at the commit its maintainers reviewed.
 
-## Contributing
+## Publishing
 
-Open a PR adding or changing a notebook. CI runs every notebook the PR touches headless in the latest Stargazer image, on an empty asset store holding only its demo bundle, and checks the layout above. A PR whose checks pass merges. Every notebook is also run daily against the latest Stargazer release.
+Publish a notebook from its tile on your Stargazer dashboard: give it a name and a domain, and it's committed here as yours. Republishing commits the new version; unpublishing deletes it, though its history stays in the repo. You can also open a PR adding a notebook by hand.
 
-To check a notebook yourself before opening the PR, from the repo root:
-
-```bash
-mkdir -m 777 -p out
-```
-
-```bash
-docker run --rm --platform linux/amd64 -v "$PWD":/repo:ro -v "$PWD/out":/out --entrypoint /repo/ci/run_notebook.sh ghcr.io/stargazerbio/stargazer /repo/<domain>/<slug>.py /out
-```
-
-The page it rendered and its log land in `out/`.
-
-To remove a notebook, open a PR deleting it. Its history stays in the repo.
+CI checks the layout above on every push and PR.
 
 ## Licence
 

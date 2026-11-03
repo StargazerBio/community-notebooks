@@ -2,9 +2,8 @@
 
 Each notebook is `<domain>/<slug>.py`. Its setup block declares its dashboard
 tile as plain strings (`main_name`, `main_description`), and the
-`[tool.stargazer]` table in its script header names its `owners` and the
-`demo_bundle` CI runs it on. Every catalog entry names an existing notebook at
-a full commit. Prints one line per problem and exits 1 if there are any.
+`[tool.stargazer]` table in its script header names its `owners`. Every
+catalog entry names an existing notebook at a full commit. Prints one line per problem and exits 1 if there are any.
 """
 
 import ast
@@ -74,8 +73,6 @@ def notebook_problems(notebook: Path) -> list[str]:
         return [*problems, f"{notebook}: script header isn't valid TOML: {e}"]
     if not meta.get("owners"):
         problems.append(f"{notebook}: [tool.stargazer] names no owners")
-    if not meta.get("demo_bundle"):
-        problems.append(f"{notebook}: [tool.stargazer] names no demo_bundle")
     strings = setup_strings(notebook)
     for name in ("main_name", "main_description"):
         if not strings.get(name):
