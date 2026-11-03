@@ -23,9 +23,9 @@ export PINATA_JWT=
 
 BUNDLE="$(sed -n 's/^demo_bundle:[[:space:]]*\([A-Za-z0-9_-]*\).*/\1/p' "$FOLDER/meta.yaml")"
 echo "== $FOLDER: fetching demo bundle $BUNDLE"
-# The image's MCP venv has the SDK installed; the notebook's own venv is built
-# by --sandbox below.
-/opt/mcp/bin/python -c "import asyncio, sys; from stargazer.bundles import fetch_bundle; asyncio.run(fetch_bundle(sys.argv[1]))" "$BUNDLE"
+# The image's runtime venv holds no SDK, so the fetch runs in one uv builds from
+# the image's SDK tree, the same tree each notebook's --sandbox venv builds from.
+uv run --quiet --no-project --with /stargazer python -c "import asyncio, sys; from stargazer.bundles import fetch_bundle; asyncio.run(fetch_bundle(sys.argv[1]))" "$BUNDLE"
 
 # marimo writes next to the notebook and the checkout is read-only.
 cp -r "$FOLDER" "$RUN_DIR/notebook"
