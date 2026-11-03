@@ -8,6 +8,11 @@
 #
 # [tool.uv.sources]
 # stargazer-bio = { path = "/stargazer", editable = true }
+#
+# [tool.stargazer]
+# # Who may republish or unpublish this notebook from the dashboard, as Union
+# # subjects; "maintainers" is the org's admins.
+# owners = ["maintainers"]
 # ///
 """
 ### Stargazer scRNA-seq.

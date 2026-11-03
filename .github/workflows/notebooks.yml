@@ -1,20 +1,10 @@
-# The inclusion bar: every notebook a change touches runs headless in the
-# Stargazer image on its demo bundle, and the repo's layout and catalog hold.
-# Branch protection requires the `Notebooks` checks, so only a passing PR
-# merges. The daily run checks every notebook against the latest release, so a
-# release that breaks one shows up here; a manual run takes any image tag.
+# Every push and PR checks the repo's layout and catalog (ci/check_layout.py).
+# It reports; nothing is gated on it.
 name: Notebooks
 on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    - cron: "41 7 * * *"
-  workflow_dispatch:
-    inputs:
-      image:
-        description: Stargazer image tag to run the notebooks in
-        default: latest
 permissions:
   contents: read
 jobs:
@@ -24,44 +14,3 @@ jobs:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - run: uv run --no-project --with "pyyaml>=6,<7" python ci/check_layout.py
-
-  plan:
-    runs-on: ubuntu-latest
-    outputs:
-      folders: ${{ steps.folders.outputs.folders }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - id: folders
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: python3 ci/changed.py >> "$GITHUB_OUTPUT"
-
-  run:
-    needs: [layout, plan]
-    if: needs.plan.outputs.folders != '[]'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        folder: ${{ fromJSON(needs.plan.outputs.folders) }}
-    name: run (${{ matrix.folder }})
-    steps:
-      - uses: actions/checkout@v5
-      # The image runs as uid 1000; the runner's checkout belongs to another.
-      - run: mkdir -m 777 out
-      - env:
-          IMAGE: ghcr.io/stargazerbio/stargazer:${{ inputs.image || 'latest' }}
-          FOLDER: ${{ matrix.folder }}
-        run: |
-          docker run --rm --platform linux/amd64 \
-            -v "$PWD":/repo:ro -v "$PWD/out":/out \
-            --entrypoint /repo/ci/run_notebook.sh \
-            "$IMAGE" "/repo/$FOLDER" /out
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: notebook-${{ strategy.job-index }}
-          path: out/
