@@ -1,12 +1,16 @@
 # /// script
 # requires-python = ">=3.14"
 # dependencies = [
+#   "marimo",
 #   "matplotlib",
 #   "numpy",
 #   "stargazer-bio[bio]",
 # ]
 #
-# [tool.uv.sources]
+# [tool.pixi.dependencies]
+# python = "3.14.*"
+#
+# [tool.pixi.pypi-dependencies]
 # stargazer-bio = { path = "/stargazer", editable = true }
 #
 # [tool.stargazer]
