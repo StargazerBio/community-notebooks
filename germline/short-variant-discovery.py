@@ -1,10 +1,20 @@
 # /// script
 # requires-python = ">=3.14"
 # dependencies = [
+#   "marimo",
 #   "stargazer-bio",
 # ]
 #
-# [tool.uv.sources]
+# [tool.pixi.workspace]
+# channels = ["conda-forge", "bioconda"]
+#
+# [tool.pixi.dependencies]
+# python = "3.14.*"
+# gatk4 = "4.6.*"
+# samtools = "1.*"
+# bwa-mem2 = "2.*"
+#
+# [tool.pixi.pypi-dependencies]
 # stargazer-bio = { path = "/stargazer", editable = true }
 #
 # [tool.stargazer]
