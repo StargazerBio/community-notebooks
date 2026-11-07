@@ -1,6 +1,6 @@
 # Featured notebooks, each at the commit its maintainers reviewed.
 notebooks:
   - path: scrna/clustering-pipeline.py
-    commit: c294e0008e13dd691be21cdcd1112163d854e2cb
+    commit: 63e5c101d53d4fcaf8503734579e08cbcc5860d0
   - path: germline/short-variant-discovery.py
-    commit: 352b277fd326b18d1939d4a71e3453476dd85e89
+    commit: 63e5c101d53d4fcaf8503734579e08cbcc5860d0
