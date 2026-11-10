@@ -1,17 +1,21 @@
 # /// script
 # requires-python = ">=3.14"
 # dependencies = [
+#   "flyte",
+#   "igraph",
 #   "marimo",
 #   "matplotlib",
 #   "numpy",
-#   "stargazer-bio[bio]",
+#   "scanpy",
+#   "scikit-image",
+#   "stargazer-bio",
 # ]
 #
 # [tool.pixi.dependencies]
 # python = "3.14.*"
 #
 # [tool.pixi.pypi-dependencies]
-# stargazer-bio = { path = "/stargazer", editable = true }
+# stargazer-bio = { path = "/stargazer" }
 #
 # [tool.stargazer]
 # # Who may republish or unpublish this notebook from the dashboard, as Union
@@ -38,7 +42,11 @@ with app.setup:
     import marimo as mo
 
     from stargazer.assets.scrna import AnnData
-    from stargazer.config import scrna_env
+    from stargazer.config import (
+        STARGAZER_ENV_VARS,
+        STARGAZER_SECRETS,
+        notebook_image,
+    )
     from stargazer.tasks.scrna import (
         cluster,
         find_markers,
@@ -47,17 +55,20 @@ with app.setup:
         reduce_dimensions,
         select_features,
     )
+    from stargazer.tasks.scrna.env import scrna_env
 
     main_name = "scRNA-seq clustering"
     main_description = "Parallel preprocessing, then interactive Leiden clustering."
 
-    # A cluster pod imports this notebook to find its workflows, so their image
-    # is scrna_env's plus the marimo hosted notebooks run on. The tasks they
-    # call run on scrna_env, which a cluster run deploys along with them.
-    pipeline_env = scrna_env.clone_with(
+    # A cluster pod imports this notebook to find its workflows, on an image
+    # built from the header above. The tasks they call run on scrna_env,
+    # which a cluster run deploys along with them.
+    pipeline_env = flyte.TaskEnvironment(
         name="scrna_pipeline",
-        image=scrna_env.image.with_pip_packages("marimo>=0.23,<0.24"),
+        image=notebook_image(__file__, "stargazer-scrna-pipeline"),
         resources=flyte.Resources(cpu=1, memory="1Gi"),
+        env_vars=STARGAZER_ENV_VARS,
+        secrets=STARGAZER_SECRETS,
         depends_on=[scrna_env],
     )
 
