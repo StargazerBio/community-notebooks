@@ -15,7 +15,7 @@
 # bwa-mem2 = "2.*"
 #
 # [tool.pixi.pypi-dependencies]
-# stargazer-bio = { path = "/stargazer", editable = true }
+# stargazer-bio = { path = "/stargazer" }
 #
 # [tool.stargazer]
 # # Who may republish or unpublish this notebook from the dashboard, as Union
@@ -256,7 +256,7 @@ async def _(build_picker, cohort_input, dispatch, run_button, sample_picker, whe
             cohort_id=cohort_input.value,
         )
     mo.md(
-        f"Cohort **{cohort.sample_id}**: {cohort.sample_count} sample(s) "
+        f"Cohort **{cohort.sample_id}**: {len(cohort.source_samples)} sample(s) "
         f"on {cohort.build}, VCF `{cohort.cid}`."
     )
     return (cohort,)
