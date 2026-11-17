@@ -41,7 +41,7 @@ with app.setup:
     import flyte
     import marimo as mo
 
-    from stargazer.assets.scrna import AnnData
+    from stargazer import AnnData
     from stargazer.config import (
         STARGAZER_ENV_VARS,
         STARGAZER_SECRETS,
@@ -75,7 +75,7 @@ with app.setup:
 
 @app.cell
 def _():
-    """Imports, warning filters, and Flyte init."""
+    """Imports and warning filters."""
     import warnings
 
     warnings.filterwarnings("ignore", message="Variable names are not unique")
@@ -83,10 +83,6 @@ def _():
 
     import matplotlib.pyplot as plt
     import numpy as np
-
-    from stargazer.config import init_flyte
-
-    init_flyte()
 
     mo.md(
         """
@@ -171,8 +167,7 @@ async def _(sample_picker):
     """Assemble raw AnnData for every selected sample (auto-fetch on miss)."""
     import scanpy as sc
 
-    from stargazer.assets.asset import assemble
-    from stargazer.bundles import fetch_bundle
+    from stargazer import assemble, fetch_bundle
 
     mo.stop(not sample_picker.value, mo.md("Pick at least one sample."))
 
