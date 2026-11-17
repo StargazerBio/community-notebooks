@@ -43,9 +43,7 @@ with app.setup:
 
     import marimo as mo
 
-    from stargazer.assets.asset import assemble
-    from stargazer.assets.reads import R1
-    from stargazer.assets.reference import Reference
+    from stargazer import R1, Reference, assemble
     from stargazer.workflows import germline_short_variant_discovery
 
     main_name = "Germline variants"
@@ -96,11 +94,7 @@ def count_variants(records: list[list[str]]) -> dict[str, int]:
 
 @app.cell
 def _():
-    """Title and Flyte init."""
-    from stargazer.config import init_flyte
-
-    init_flyte()
-
+    """Title."""
     mo.md(
         """
         # Germline Short Variant Discovery
@@ -148,7 +142,7 @@ def _():
 @app.cell
 async def _(add_demo):
     """The graph's references and samples, adding the demo bundle if asked or empty."""
-    from stargazer.bundles import fetch_bundle
+    from stargazer import fetch_bundle
 
     async def _inputs():
         """The graph's references and the R1 reads of its samples."""
