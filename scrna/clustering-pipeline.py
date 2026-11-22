@@ -42,11 +42,8 @@ with app.setup:
     import marimo as mo
 
     from stargazer import AnnData
-    from stargazer.config import (
-        STARGAZER_ENV_VARS,
-        STARGAZER_SECRETS,
-        notebook_image,
-    )
+    from stargazer.config import STARGAZER_ENV_VARS, STARGAZER_SECRETS
+    from stargazer.images import notebook_image
     from stargazer.tasks.scrna import (
         cluster,
         find_markers,
